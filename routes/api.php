@@ -21,3 +21,5 @@ Route::middleware('auth:api')->group(function () {
 # The guest routes
 Route::post('/signin', 'AuthController@signin');
 Route::post('/signup', 'AuthController@signup');
+Route::get('/validate/username', 'AuthController@usernameValidation');
+Route::get('/validate/email', 'AuthController@emailValidation');

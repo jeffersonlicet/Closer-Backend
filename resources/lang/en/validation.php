@@ -100,8 +100,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'username' => [
+            'allowed_username' => 'Invalid username',
         ],
     ],
 

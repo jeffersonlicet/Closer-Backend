@@ -8,22 +8,34 @@ use Validator;
 
 class AuthController extends Controller
 {
+    public function usernameValidation(Request $request)
+    {
+        $validator = self::validateUsername($request->input('username'));
+        return response()->json(['status' => $validator->passes(), 'report' => (!$validator->passes() ? $validator->messages()->first() : '' )]);
+    }
+
+    public function emailValidation(Request $request)
+    {
+        $validator = self::validateEmail($request->input('email'));
+        return response()->json(['status' => $validator->passes(), 'report' => (!$validator->passes() ? $validator->messages()->first() : '' )]);
+    }
+
     public function signin(Request $request)
     {   
         try {
 
             $input = $request->only([
-                'username', 
+                'identity', 
                 'password']);
 
-            $validator = $this->validateSignin($input);
+            $validator = self::validateSignin($input);
 
             if(!$validator->passes())
                 return response()->json(['status' => FALSE, 'report' => $validator->messages()->first()]);
 
-            $sanitized = filter_var($input['username'], FILTER_SANITIZE_EMAIL);
+            $sanitized = filter_var($input['identity'], FILTER_SANITIZE_EMAIL);
 
-            if(!($user = User::where(($sanitized == $input['username'] && filter_var($sanitized, FILTER_VALIDATE_EMAIL)) ? 'email' : 'username', $input['username'])->first()))
+            if(!($user = User::where(($sanitized == $input['identity'] && filter_var($sanitized, FILTER_VALIDATE_EMAIL)) ? 'email' : 'username', $input['identity'])->first()))
                 return response()->json(['status' => FALSE, 'report' => 'User not found']);
             
             $token = $this->generateToken($user->email, $input['password']);
@@ -47,7 +59,7 @@ class AuthController extends Controller
             'email', 
             'password']);
 
-        $validator = $this->validateSignup($input);
+        $validator = self::validateSignup($input);
 
         if ($validator->fails()) 
             return response()->json(['status' => false, 'report' => $validator->errors()->first()]);
@@ -88,7 +100,7 @@ class AuthController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validateSignup(array $data)
+    protected static function validateSignup(array $data)
     {
         return Validator::make($data, [
             'name' => 'required|string|max:255',
@@ -104,11 +116,25 @@ class AuthController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validateSignin(array $data)
+    protected static function validateSignin(array $data)
     {
         return Validator::make($data, [
-            'username' => 'required',
+            'identity' => 'required',
             'password' => 'required',
+        ]);
+    }
+
+    protected static function validateUsername($username)
+    {
+        return Validator::make(['username' => $username], [
+            'username' => 'required|string|allowed_username|max:255|unique:users'
+        ]);
+    }
+
+    protected static function validateEmail($email)
+    {
+        return Validator::make(['email' => $email], [
+            'email' => 'required|string|email|max:255|unique:users'
         ]);
     }
 }
