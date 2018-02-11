@@ -8,6 +8,12 @@ use Validator;
 
 class AuthController extends Controller
 {
+
+    public function mountSignin(Request $request)
+    {
+        //$input = $request->only(['identity']);
+    }
+
     public function usernameValidation(Request $request)
     {
         $validator = self::validateUsername($request->input('username'));
@@ -54,7 +60,6 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $input = $request->only([
-            'name', 
             'username',
             'email', 
             'password']);
@@ -65,9 +70,9 @@ class AuthController extends Controller
             return response()->json(['status' => false, 'report' => $validator->errors()->first()]);
         
         $user = User::create([
-            'name' => $input['name'],
             'username' => $input['username'],
             'email' => $input['email'],
+            'name' => '',
             'password' => bcrypt($input['password']),
         ]);
 
@@ -94,28 +99,15 @@ class AuthController extends Controller
         return json_decode((string) $response->getBody(), true);
     }
 
-    /**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
     protected static function validateSignup(array $data)
     {
         return Validator::make($data, [
-            'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'username' => 'required|string|allowed_username|max:255|unique:users',
             'password' => 'required|string|min:6',
         ]);
     }
 
-    /**
-     * Get a validator for an incoming signin request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
     protected static function validateSignin(array $data)
     {
         return Validator::make($data, [
